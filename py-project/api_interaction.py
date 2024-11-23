@@ -1,4 +1,5 @@
 import requests
+import numpy as np
 
 BASE_URL = "http://localhost:8080"  # Replace with your API base URL
 
@@ -27,7 +28,10 @@ def get_vehicles(scenario_id):
     url = f"{BASE_URL}/scenarios/{scenario_id}/vehicles"
     response = requests.get(url)
     if response.status_code == 200:
-        return response.json()
+        vehicles = response.json()
+        for vehicle in vehicles:
+            vehicle["vehicleSpeed"] = generate_vehicle_speed()
+        return vehicles
     else:
         print(f"Error: {response.status_code}, {response.text}")
         return None
@@ -41,3 +45,9 @@ def update_scenario(scenario_id, payload):
     else:
         print(f"Error: {response.status_code}, {response.text}")
         return None
+
+
+def generate_vehicle_speed():
+    speed = np.random.uniform(8.33, 13.89)  # speed in meters per second (m/s)
+    print("speed: ",speed)
+    return speed

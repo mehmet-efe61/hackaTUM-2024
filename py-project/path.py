@@ -10,13 +10,8 @@ class Path():
         self.co2_emission = 0  # in grams
         self.energy_consumption = 0  # in joules
         self.trip_cost = 0  # in currency unit
-        self.set_car_speed()
         self.calculate_all()
-    
-    def set_car_speed(self):
-        speed = np.random.uniform(8.33, 13.89)  # speed in meters per second (m/s)
-        self.car["speed"] = speed
-    
+        
     def calculate_distance(self):
 
         # Convert latitude and longitude from degrees to radians
@@ -36,7 +31,7 @@ class Path():
         self.distance = R * c  # distance in meters (m)
     
     def calculate_travel_time(self):    
-        self.travel_time = self.distance / self.car["speed"]  # travel time in seconds (s)
+        self.travel_time = self.distance / self.car["vehicleSpeed"]  # travel time in seconds (s)
     
     def calculate_co2_emission(self): #TODO: Use a better formula to calculate CO2 emission
         self.co2_emission = self.travel_time * self.car["co2_emission_per_second"]  # CO2 emission in grams (g)
