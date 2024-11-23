@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Management System</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<h1>Fleet Management System</h1>
+<div id="controls">
+    <button id="fetch-scenarios">Fetch Scenarios</button>
+    <select id="scenario-select"></select>
+    <button id="simulate">Simulate Movement</button>
+</div>
+<div id="simulation-results"></div>
+<script>
+    document.getElementById("fetch-scenarios").addEventListener("click", async () => {
+        const response = await fetch("/scenarios");
+        const scenarios = await response.json();
+        const select = document.getElementById("scenario-select");
+        select.innerHTML = ""; // Clear existing options
+        scenarios.forEach(scenario => {
+            const option = document.createElement("option");
+            option.value = scenario.id;
+            option.textContent = `Scenario ${scenario.id}`;
+            select.appendChild(option);
+        });
+    });
+
+    document.getElementById("simulate").addEventListener("click", async () => {
+        const scenarioId = document.getElementById("scenario-select").value;
+        if (!scenarioId) {
+            alert("Please select a scenario.");
+            return;
+        }
+
+        const response = await fetch(`/simulate/${scenarioId}`, { method: "POST" });
+        const data = await response.json();
+
+        const container = document.getElementById("simulation-results");
+        container.innerHTML = ""; // Clear previous results
+
+        if (data.steps) {
+            data.steps.forEach((step, index) => {
+                const img = document.createElement("img");
+                img.src = `/visualize_step/${scenarioId}/${index}`; // Correct URL
+                img.alt = `Step ${index + 1}`;
+                img.style.marginBottom = "20px";
+                img.style.width = "500px"; // Adjust width for better display
+                container.appendChild(img);
+            });
+        } else {
+            container.innerHTML = "<p>No simulation data available.</p>";
+        }
+    });
+</script>
+</body>
+</html>
