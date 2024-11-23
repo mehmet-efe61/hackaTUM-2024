@@ -6,6 +6,7 @@ import io
 import matplotlib.pyplot as plt
 import argparse
 import yaml
+import os
 
 app = Flask(__name__)
 CORS(app)
@@ -123,6 +124,6 @@ def visualize_step(scenario_id, step_index):
 if __name__ == "__main__":
     global args
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="config/config_temp.yaml", help="Path to the configuration file")
+    parser.add_argument("--config", type=str, default=os.path.join("config", "weights_temp.yaml"), help="Path to the configuration file")
     args = parser.parse_args()
     app.run(debug=True)
