@@ -49,5 +49,4 @@ def update_scenario(scenario_id, payload):
 
 def generate_vehicle_speed():
     speed = np.random.uniform(8.33, 13.89)  # speed in meters per second (m/s)
-    print("speed: ",speed)
     return speed

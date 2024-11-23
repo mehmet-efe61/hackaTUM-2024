@@ -1,12 +1,13 @@
-import math
+import numpy as np
+from path import Path
 
 
 def calculate_distance(x1, y1, x2, y2):
     """Calculate the Euclidean distance between two points."""
-    return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    return np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
-def assign_vehicles_to_customers(vehicles, customers):
+def assign_vehicles_to_customers(vehicles, customers, weights):
     """Assign nearest available vehicles to customers."""
     assignments = []
 
@@ -16,10 +17,8 @@ def assign_vehicles_to_customers(vehicles, customers):
 
         for vehicle in vehicles:
             if vehicle["isAvailable"]:
-                distance = calculate_distance(
-                    customer["coordX"], customer["coordY"],
-                    vehicle["coordX"], vehicle["coordY"]
-                )
+                path = Path(vehicle, customer)
+                distance = 1 / path.compute_score(weights)
                 if distance < shortest_distance:
                     shortest_distance = distance
                     nearest_vehicle = vehicle
@@ -28,10 +27,10 @@ def assign_vehicles_to_customers(vehicles, customers):
             assignments.append({
                 "customer_id": customer["id"],
                 "vehicle_id": nearest_vehicle["id"],
-                "distance": shortest_distance
+                "path": path.metrics
             })
             nearest_vehicle["isAvailable"] = False
-
+    print(assignments)
     return assignments
 
 

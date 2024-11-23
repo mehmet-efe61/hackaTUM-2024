@@ -4,12 +4,20 @@ from api_interaction import get_scenarios, get_customers, get_vehicles
 from fleet_logic import assign_vehicles_to_customers, move_vehicles_toward_customers
 import io
 import matplotlib.pyplot as plt
+import argparse
+import yaml
 
 app = Flask(__name__)
 CORS(app)
 
 # Global dictionary to store visualizations for each scenario
 visualization_data = {}
+
+def load_config(config_path):
+    """Load configuration settings from a YAML file."""
+    with open(config_path, "r") as file:
+        config = yaml.safe_load(file)
+    return config
 
 
 @app.route("/")
@@ -27,6 +35,7 @@ def fetch_scenarios():
     return jsonify({"error": "Unable to fetch scenarios"}), 500
 
 
+
 @app.route("/simulate/<scenario_id>", methods=["POST"])
 def simulate_movement(scenario_id):
     """Simulate vehicle movement toward customers and generate visualizations."""
@@ -37,7 +46,9 @@ def simulate_movement(scenario_id):
         return jsonify({"error": "Unable to fetch customers or vehicles"}), 500
 
     # Assign vehicles to customers
-    assignments = assign_vehicles_to_customers(vehicles, customers)
+    weights = load_config(args.config)["weights"]
+    assignments = assign_vehicles_to_customers(vehicles, customers, weights)
+    
 
     # Simulate movement over 10 steps and save plots for each step
     simulation_steps = []
@@ -110,4 +121,8 @@ def visualize_step(scenario_id, step_index):
 
 
 if __name__ == "__main__":
+    global args
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, default="config/config_temp.yaml", help="Path to the configuration file")
+    args = parser.parse_args()
     app.run(debug=True)
