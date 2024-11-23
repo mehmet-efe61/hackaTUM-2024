@@ -1,0 +1,15 @@
+Parameters:
+
+Naive: distance
+
+Eco-friendly:
+  -co2_emmissions
+  -energy_consumption
+
+User-satisfaction:
+  -trip_cost
+  -trip_time
+
+Economical:
+  -profit
+  -capacity
