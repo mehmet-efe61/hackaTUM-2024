@@ -26,6 +26,7 @@
       
           <!-- Dropdown -->
           <select id="scenario-select" class="w-80 bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="example">Example Scenario</option>
           </select>
           <button id="simulate" class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">Simulate Movement</button>
         </div>
@@ -129,17 +130,16 @@
     createChart('graph3', 'Energy Consumption');
     createChart('graph4', 'CO2 Emissions');
     document.getElementById("simulate").addEventListener("click", async () => {
-        // const scenarioId = document.getElementById("scenario-select").value;
-        // if (!scenarioId) {
-        //     alert("Please select a scenario.");
-        //     return;
-        // }
+        const scenarioId = document.getElementById("scenario-select").value;
+        if (!scenarioId) {
+            alert("Please select a scenario.");
+            return;
+        }
 
-        // const response = await fetch(`/simulate/${scenarioId}`, { method: "POST" });
-        // const data = await response.json();
+        const response = await fetch(`/simulate/${scenarioId}`, { method: "POST" });
+        const data = await response.json();
 
-        // const container = document.getElementById("simulation-results");
-        // container.innerHTML = "";  
+        const container = document.getElementById("simulation-results");
 
         const jsonResponse = await fetch('static/index.json');
         const jsonData = await jsonResponse.json();
