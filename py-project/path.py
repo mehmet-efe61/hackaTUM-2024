@@ -12,10 +12,9 @@ class Path():
         self.dist_to_customer = self.calculate_distance(vehicle['coordX'], vehicle['coordY'], customer['coordX'], customer['coordY'])
         self.dist_to_goal = self.calculate_distance(customer['coordX'], customer['coordY'], customer['destinationX'], customer['destinationY'])
         self.time_to_goal = self.dist_to_goal / self.vehicle["vehicleSpeed"]
-        total_time = (self.dist_to_customer + self.dist_to_goal) / self.vehicle["vehicleSpeed"]
-        self.metrics = {
+        self.total_time = (self.dist_to_customer + self.dist_to_goal) / self.vehicle["vehicleSpeed"]
+        self.metrics: dict = {
             "total_dist": self.dist_to_customer + self.dist_to_goal,  # in meters
-            "total_time": total_time,  # in seconds
         }
         self.calculate_all()
             
@@ -33,40 +32,28 @@ class Path():
     
 
     def calculate_co2_emission(self): #TODO: Use a better formula to calculate CO2 emission
-        self.metrics["co2_emission"] = self.metrics["total_time"] * CO2_EMISSION_PER_SECOND # CO2 emission in grams (g)
+        self.metrics["co2_emission"] = self.total_time * CO2_EMISSION_PER_SECOND + 0.5 * self.total_time ** 2 # CO2 emission in grams (g)
     
     def calculate_energy_consumption(self): #TODO: Use a better formula to calculate energy consumption
-        self.metrics["energy_consumption"] = self.metrics["total_time"] * ENERGY_CONSUMPTION_PER_SECOND  # energy consumption in joules (J)
+        self.metrics["energy_consumption"] = self.total_time * ENERGY_CONSUMPTION_PER_SECOND + 2 * self.total_time # energy consumption in joules (J)
 
     def calculate_cost(self):
-        self.metrics["cost"] = (self.metrics["total_dist"] / 1000) * COST_PER_KM  # trip cost in currency unit (e.g., USD)
+        self.metrics["cost"] = (self.metrics["total_dist"] / 1000) * COST_PER_KM + np.log(self.total_time) # trip cost in currency unit (e.g., USD)
     
     def calculate_profit(self):
         self.metrics["profit"] = (self.dist_to_goal / 1000 * REVENUE_PER_KM + self.time_to_goal * REVENUE_PER_SECOND) - self.metrics["cost"]
 
-    def compute_score(self, weights):
+    def compute_score(self, weights, normalization_params):
         score = 0
-        normalized_metrics = self.normalize_metrics()
-        for metric, value in normalized_metrics.items():
-            score += weights[metric] * value
-        return score
-
-    def normalize_metrics(self):
-        normalized_metrics = {}
         for metric, value in self.metrics.items():
-            if metric == "total_dist":
-                normalized_metrics[metric] = value / 10000 
-            elif metric == "total_time":
-                normalized_metrics[metric] = value / 3600  
-            elif metric == "co2_emission":
-                normalized_metrics[metric] = value / 1000  
-            elif metric == "energy_consumption":
-                normalized_metrics[metric] = value / 1000   
-            elif metric == "cost":
-                normalized_metrics[metric] = value / 100  
-            elif metric == "profit":
-                normalized_metrics[metric] = value / 100  
-        return normalized_metrics
+            normalized_value = (
+                (value - normalization_params[metric]["min"])
+                / (normalization_params[metric]["max"] - normalization_params[metric]["min"])
+                if normalization_params[metric]["max"] != normalization_params[metric]["min"]  # Avoid division by zero
+                else 0
+            )
+            score += weights[metric] * normalized_value
+        return score
 
     def calculate_all(self):
         self.calculate_co2_emission()

@@ -9,35 +9,61 @@ def calculate_distance(x1, y1, x2, y2):
 
 
 def assign_vehicles_to_customers(vehicles, customers, weights):
-    """Assign nearest available vehicles to customers."""
+    normalization_params = normalize_metrics(vehicles, customers)
     assignments = []
 
     for customer in customers:
         nearest_vehicle = None
-        shortest_distance = float("inf")
+        highest_score = float("-inf")
 
         for vehicle in vehicles:
             if vehicle["isAvailable"]:
                 path = Path(vehicle, customer)
-                distance = 1 / path.compute_score(weights)
-                if distance < shortest_distance:
-                    shortest_distance = distance
+                score = path.compute_score(weights, normalization_params)
+                if score > highest_score:
+                    highest_score = score
                     nearest_vehicle = vehicle
+                    best_path = path
 
         if nearest_vehicle:
             assignments.append({
                 "customer_id": customer["id"],
                 "vehicle_id": nearest_vehicle["id"],
-                "path": path.metrics
+                "path_metrics": best_path.metrics,
+                "score": highest_score
             })
             nearest_vehicle["isAvailable"] = False
+
     return assignments
+
+def normalize_metrics(vehicles, customers):
+    all_metrics = {
+        "total_dist": [],
+        "co2_emission": [],
+        "energy_consumption": [],
+        "cost": [],
+        "profit": []
+    }
+
+    # Collect all values for normalization
+    for vehicle in vehicles:
+        for customer in customers:
+            path = Path(vehicle, customer)
+            for metric, value in path.metrics.items():
+                all_metrics[metric].append(value)
+
+    # Compute min and max for each metric
+    normalization_params = {
+        metric: {"min": min(values), "max": max(values)} for metric, values in all_metrics.items()
+    }
+
+    return normalization_params
+
 
 def calculate_avg_metrics(assignments):
     """Calculate average metrics for a list of assignments."""
     total_metrics = {
         "total_dist": 0,
-        "total_time": 0,
         "co2_emission": 0,
         "energy_consumption": 0,
         "cost": 0,
@@ -45,7 +71,7 @@ def calculate_avg_metrics(assignments):
     }
 
     for assignment in assignments:
-        metrics = assignment["path"]
+        metrics = assignment["path_metrics"]
         for key, value in metrics.items():
             total_metrics[key] += value
 

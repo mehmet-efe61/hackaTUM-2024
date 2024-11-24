@@ -12,9 +12,7 @@ def main():
     vehicles = get_vehicles(scenario_id)
 
     if customers and vehicles:
-        print("Customers:", customers)
-        print("Vehicles:", vehicles)
-
+      
         # Visualize the scenario
         visualize_scenario(vehicles, customers)
     else:

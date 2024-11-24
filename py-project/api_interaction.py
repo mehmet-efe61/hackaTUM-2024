@@ -29,8 +29,6 @@ def get_vehicles(scenario_id):
     response = requests.get(url)
     if response.status_code == 200:
         vehicles = response.json()
-        for vehicle in vehicles:
-            vehicle["vehicleSpeed"] = generate_vehicle_speed()
         return vehicles
     else:
         print(f"Error: {response.status_code}, {response.text}")
@@ -47,6 +45,3 @@ def update_scenario(scenario_id, payload):
         return None
 
 
-def generate_vehicle_speed():
-    speed = np.random.uniform(8.33, 13.89)  # speed in meters per second (m/s)
-    return speed

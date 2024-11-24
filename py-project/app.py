@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify, render_template, send_file, url_for
 from flask_cors import CORS
 from api_interaction import get_scenarios, get_customers, get_vehicles
 from fleet_logic import assign_vehicles_to_customers, calculate_avg_metrics, dump_avg_metrics_to_json, move_vehicles_toward_customers
+import numpy as np
+
 import io
 import matplotlib.pyplot as plt
 import argparse
@@ -41,19 +43,28 @@ def fetch_scenarios():
 def simulate_movement(scenario_id):
     """Simulate vehicle movement toward customers and generate visualizations."""
 
-
     algos = {}
+    vehicle_speed = generate_vehicle_speed()
+    print(f"Vehicle speed: {vehicle_speed} m/s")
     # Assign vehicles to customers
+   
+    assignments = None
+
     for config in os.listdir("config"):
         customers = get_customers(scenario_id)
         vehicles = get_vehicles(scenario_id)
+        customers_copy = [customer.copy() for customer in customers]
+        vehicles_copy = [vehicle.copy() for vehicle in vehicles]
+        for vehicle in vehicles_copy:
+            vehicle["vehicleSpeed"] = vehicle_speed
 
         if config.endswith(".yaml"):
             weights = load_config(os.path.join("config", config))["weights"]
-            assignments = assign_vehicles_to_customers(vehicles, customers, weights)
-            print(assignments, weights)
+            assignments = assign_vehicles_to_customers(vehicles_copy, customers_copy, weights)
             avg_metrics = calculate_avg_metrics(assignments)
             algos[config.removesuffix(".yaml")] = avg_metrics
+
+
     dump_avg_metrics_to_json(algos)
     
 
@@ -126,10 +137,9 @@ def visualize_step(scenario_id, step_index):
         print(f"Visualization error for scenario {scenario_id}: {e}")  # Debug log
         return jsonify({"error": "Invalid step index"}), 404
 
+def generate_vehicle_speed():
+    speed = np.random.uniform(8.33, 13.89)  # speed in meters per second (m/s)
+    return speed
 
 if __name__ == "__main__":
-    global args
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default=os.path.join("config", "weights_temp.yaml"), help="Path to the configuration file")
-    args = parser.parse_args()
     app.run(debug=True)
