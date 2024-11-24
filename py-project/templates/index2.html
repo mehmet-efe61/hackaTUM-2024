@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Management System</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<h1>Fleet Management System</h1>
+
+<div id="controls">
+    <button id="fetch-scenarios">Fetch Scenarios</button>
+    <select id="scenario-select"></select>
+    <button id="simulate">Simulate Movement</button>
+</div>
+
+<h2>Statistics Dashboard</h2>
+
+<div id="charts-container" style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px;">
+    <div style="width: 45%;">
+        <canvas id="profitChart"></canvas>
+    </div>
+    <div style="width: 45%;">
+        <canvas id="distanceChart"></canvas>
+    </div>
+    <div style="width: 45%;">
+        <canvas id="energyChart"></canvas>
+    </div>
+    <div style="width: 45%;">
+        <canvas id="co2Chart"></canvas>
+    </div>
+</div>
+
+<div id="simulation-results"></div>
+
+<script>
+    document.getElementById("fetch-scenarios").addEventListener("click", async () => {
+        const response = await fetch("/scenarios");
+        const scenarios = await response.json();
+        const select = document.getElementById("scenario-select");
+        select.innerHTML = "";  
+        scenarios.forEach(scenario => {
+            const option = document.createElement("option");
+            option.value = scenario.id;
+            option.textContent = `Scenario ${scenario.id}`;
+            select.appendChild(option);
+        });
+    });
+
+    // Initialize all charts
+    const profitCtx = document.getElementById('profitChart').getContext('2d');
+    const profitChart = new Chart(profitCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Profit'],
+            datasets: [
+                {
+                    label: 'Eco-friendly Approach',
+                    data: [0],
+                    backgroundColor: '#419043',
+                    borderColor: '#000000',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Naive Approach',
+                    data: [0],
+                    backgroundColor: '#F39C12',
+                    borderColor: '#000000',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Max Profit Approach',
+                    data: [0],
+                    backgroundColor: '#E74C3C',
+                    borderColor: '#000000',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    const distanceCtx = document.getElementById('distanceChart').getContext('2d');
+    const distanceChart = new Chart(distanceCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Total Distance'],
+            datasets: [
+                {
+                    label: 'Eco-friendly Approach',
+                    data: [0],
+                    backgroundColor: '#419043',
+                    borderColor: '#000000',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Naive Approach',
+                    data: [0],
+                    backgroundColor: '#F39C12',
+                    borderColor: '#000000',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Max Profit Approach',
+                    data: [0],
+                    backgroundColor: '#E74C3C',
+                    borderColor: '#000000',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    const energyCtx = document.getElementById('energyChart').getContext('2d');
+    const energyChart = new Chart(energyCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Energy Consumption'],
+            datasets: [
+                {
+                    label: 'Eco-friendly Approach',
+                    data: [0],
+                    backgroundColor: '#419043',
+                    borderColor: '#000000',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Naive Approach',
+                    data: [0],
+                    backgroundColor: '#F39C12',
+                    borderColor: '#000000',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Max Profit Approach',
+                    data: [0],
+                    backgroundColor: '#E74C3C',
+                    borderColor: '#000000',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    const co2Ctx = document.getElementById('co2Chart').getContext('2d');
+    const co2Chart = new Chart(co2Ctx, {
+        type: 'bar',
+        data: {
+            labels: ['CO2 Emission'],
+            datasets: [
+                {
+                    label: 'Eco-friendly Approach',
+                    data: [0],
+                    backgroundColor: '#419043',
+                    borderColor: '#000000',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Naive Approach',
+                    data: [0],
+                    backgroundColor: '#F39C12',
+                    borderColor: '#000000',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Max Profit Approach',
+                    data: [0],
+                    backgroundColor: '#E74C3C',
+                    borderColor: '#000000',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    document.getElementById("simulate").addEventListener("click", async () => {
+        const scenarioId = document.getElementById("scenario-select").value;
+        if (!scenarioId) {
+            alert("Please select a scenario.");
+            return;
+        }
+
+        const response = await fetch(`/simulate/${scenarioId}`, { method: "POST" });
+        const data = await response.json();
+
+        const container = document.getElementById("simulation-results");
+        container.innerHTML = "";  
+
+        const jsonResponse = await fetch('static/index.json');
+        const jsonData = await jsonResponse.json();
+
+        const ecoData = jsonData.eco_weights || {};
+        const naiveData = jsonData.naiive_weights || {};
+        const maxProfitData = jsonData.max_profit_weights || {};
+
+        // Update Profit Chart
+        profitChart.data.datasets[0].data = [ecoData.profit || 0];
+        profitChart.data.datasets[1].data = [naiveData.profit || 0];
+        profitChart.data.datasets[2].data = [maxProfitData.profit || 0];
+        profitChart.update();
+
+        // Update Distance Chart
+        distanceChart.data.datasets[0].data = [ecoData.total_dist || 0];
+        distanceChart.data.datasets[1].data = [naiveData.total_dist || 0];
+        distanceChart.data.datasets[2].data = [maxProfitData.total_dist || 0];
+        distanceChart.update();
+
+        // Update Energy Chart
+        energyChart.data.datasets[0].data = [ecoData.energy_consumption || 0];
+        energyChart.data.datasets[1].data = [naiveData.energy_consumption || 0];
+        energyChart.data.datasets[2].data = [maxProfitData.energy_consumption || 0];
+        energyChart.update();
+
+        // Update CO2 Chart
+        co2Chart.data.datasets[0].data = [ecoData.co2_emission || 0];
+        co2Chart.data.datasets[1].data = [naiveData.co2_emission || 0];
+        co2Chart.data.datasets[2].data = [maxProfitData.co2_emission || 0];
+        co2Chart.update();
+    });
+</script>
+</body>
+</html>
