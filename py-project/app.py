@@ -1,7 +1,7 @@
-from flask import Flask, request, jsonify, render_template, send_file
+from flask import Flask, request, jsonify, render_template, send_file, url_for
 from flask_cors import CORS
 from api_interaction import get_scenarios, get_customers, get_vehicles
-from fleet_logic import assign_vehicles_to_customers, move_vehicles_toward_customers
+from fleet_logic import assign_vehicles_to_customers, calculate_avg_metrics, dump_avg_metrics_to_json, move_vehicles_toward_customers
 import io
 import matplotlib.pyplot as plt
 import argparse
@@ -49,6 +49,8 @@ def simulate_movement(scenario_id):
     # Assign vehicles to customers
     weights = load_config(args.config)["weights"]
     assignments = assign_vehicles_to_customers(vehicles, customers, weights)
+    avg_metrics = calculate_avg_metrics(assignments)
+    dump_avg_metrics_to_json(avg_metrics,args.config)
     
 
     # Simulate movement over 10 steps and save plots for each step

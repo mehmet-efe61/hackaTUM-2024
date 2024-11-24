@@ -1,6 +1,7 @@
 import numpy as np
 from path import Path
-
+import json
+import os
 
 def calculate_distance(x1, y1, x2, y2):
     """Calculate the Euclidean distance between two points."""
@@ -30,9 +31,33 @@ def assign_vehicles_to_customers(vehicles, customers, weights):
                 "path": path.metrics
             })
             nearest_vehicle["isAvailable"] = False
-    print(assignments)
     return assignments
 
+def calculate_avg_metrics(assignments):
+    """Calculate average metrics for a list of assignments."""
+    total_metrics = {
+        "total_dist": 0,
+        "total_time": 0,
+        "co2_emission": 0,
+        "energy_consumption": 0,
+        "cost": 0,
+        "profit": 0
+    }
+
+    for assignment in assignments:
+        metrics = assignment["path"]
+        for key, value in metrics.items():
+            total_metrics[key] += value
+
+    num_assignments = len(assignments)
+    avg_metrics = {key: total_metrics[key] / num_assignments for key in total_metrics}
+    return avg_metrics
+
+def dump_avg_metrics_to_json(avg_metrics, config_name,filename = "index.json"):
+    """Dump assignments to a JSON file."""
+    avg_metrics["algorithm"] = config_name.removeprefix("config").removesuffix(".yaml")
+    with open(os.path.join("static", filename), "w") as file:
+        json.dump(avg_metrics, file)
 
 def move_vehicles_toward_customers(vehicles, customers, assignments, step=0.01):
     """Move vehicles incrementally toward their assigned customers."""
