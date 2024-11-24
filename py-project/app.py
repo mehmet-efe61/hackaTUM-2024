@@ -40,17 +40,21 @@ def fetch_scenarios():
 @app.route("/simulate/<scenario_id>", methods=["POST"])
 def simulate_movement(scenario_id):
     """Simulate vehicle movement toward customers and generate visualizations."""
-    customers = get_customers(scenario_id)
-    vehicles = get_vehicles(scenario_id)
 
-    if not customers or not vehicles:
-        return jsonify({"error": "Unable to fetch customers or vehicles"}), 500
 
+    algos = {}
     # Assign vehicles to customers
-    weights = load_config(args.config)["weights"]
-    assignments = assign_vehicles_to_customers(vehicles, customers, weights)
-    avg_metrics = calculate_avg_metrics(assignments)
-    dump_avg_metrics_to_json(avg_metrics,args.config)
+    for config in os.listdir("config"):
+        customers = get_customers(scenario_id)
+        vehicles = get_vehicles(scenario_id)
+
+        if config.endswith(".yaml"):
+            weights = load_config(os.path.join("config", config))["weights"]
+            assignments = assign_vehicles_to_customers(vehicles, customers, weights)
+            print(assignments, weights)
+            avg_metrics = calculate_avg_metrics(assignments)
+            algos[config.removesuffix(".yaml")] = avg_metrics
+    dump_avg_metrics_to_json(algos)
     
 
     # Simulate movement over 10 steps and save plots for each step

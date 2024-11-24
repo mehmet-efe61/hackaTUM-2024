@@ -1,5 +1,5 @@
 import numpy as np
-from path import Path
+from path import Path  
 import json
 import os
 
@@ -50,14 +50,13 @@ def calculate_avg_metrics(assignments):
             total_metrics[key] += value
 
     num_assignments = len(assignments)
-    avg_metrics = {key: total_metrics[key] / num_assignments for key in total_metrics}
+    avg_metrics = {key: (total_metrics[key] / num_assignments if num_assignments > 0 else 0) for key in total_metrics}
     return avg_metrics
 
-def dump_avg_metrics_to_json(avg_metrics, config_name,filename = "index.json"):
+def dump_avg_metrics_to_json(payload,filename = "index.json"):
     """Dump assignments to a JSON file."""
-    avg_metrics["algorithm"] = config_name.removeprefix("config").removesuffix(".yaml")
     with open(os.path.join("static", filename), "w") as file:
-        json.dump(avg_metrics, file)
+        json.dump(payload, file, indent=4)
 
 def move_vehicles_toward_customers(vehicles, customers, assignments, step=0.01):
     """Move vehicles incrementally toward their assigned customers."""

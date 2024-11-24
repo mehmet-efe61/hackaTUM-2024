@@ -48,7 +48,6 @@ class Path():
         score = 0
         normalized_metrics = self.normalize_metrics()
         for metric, value in normalized_metrics.items():
-            print(metric, value)
             score += weights[metric] * value
         return score
 

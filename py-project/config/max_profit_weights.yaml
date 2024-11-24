@@ -1,0 +1,7 @@
+weights:
+  total_dist: 0.1
+  total_time: 0.1
+  co2_emission: 0.3
+  energy_consumption: 0.3
+  cost: -1
+  profit: 1
